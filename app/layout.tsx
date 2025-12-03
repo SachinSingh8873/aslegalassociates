@@ -91,7 +91,7 @@ export const metadata: Metadata = {
         media: '(prefers-color-scheme: light)',
       },
       {
-        url: '/icon-dark-32x32.png',
+        url: '/icon-light-32x32.png',
         media: '(prefers-color-scheme: dark)',
       },
       {
@@ -99,7 +99,7 @@ export const metadata: Metadata = {
         type: 'image/svg+xml',
       },
     ],
-    apple: '/apple-icon.png',
+    apple: '/icon-light-32x32.png',
   },
   other: {
     'geo.region': 'IN-DL',
@@ -132,10 +132,10 @@ export default function RootLayout({
               "image": "https://aslegalassociates.in/logo.jpg",
               "@id": "https://aslegalassociates.in",
               "url": "https://aslegalassociates.in",
-              "telephone": "+91-XXXXXXXXXX", // Add your phone number
+              "telephone": "+91-8252207551", // Add your phone number
               "address": {
                 "@type": "PostalAddress",
-                "streetAddress": "Your Office Address",
+                "streetAddress": "Sector 17 Rohini",
                 "addressLocality": "Rohini",
                 "addressRegion": "Delhi",
                 "postalCode": "110085",
@@ -167,6 +167,7 @@ export default function RootLayout({
             })
           }}
         />
+        <meta name="google-site-verification" content="0SAKY0jrIXm_3SCQuGvk69wVlj5jlO-CBxH8537_gPA" />
         <meta name="geo.position" content="28.7041;77.1025" />
         <meta name="geo.region" content="IN-DL" />
         <meta name="geo.placename" content="Delhi, Rohini" />
