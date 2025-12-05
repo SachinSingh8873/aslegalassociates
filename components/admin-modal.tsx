@@ -65,7 +65,7 @@ export default function AdminModal({ isOpen, onClose }: AdminModalProps) {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
     // Simple password check (in production, use proper authentication)
-    if (credentials.username === 'admin' && credentials.password === 'admin123') {
+    if (credentials.username === 'avinashsingh0' && credentials.password === 'avinash@8252') {
       setAdminView('dashboard')
       setCredentials({ username: '', password: '' })
       fetchLeads()
@@ -265,11 +265,6 @@ export default function AdminModal({ isOpen, onClose }: AdminModalProps) {
                     placeholder="Enter password"
                     autoComplete="current-password"
                   />
-                </div>
-                <div className="text-sm text-gray-500 p-3 bg-blue-50 rounded">
-                  <p>Default credentials:</p>
-                  <p>Username: <strong>admin</strong></p>
-                  <p>Password: <strong>admin123</strong></p>
                 </div>
                 <button
                   type="submit"
