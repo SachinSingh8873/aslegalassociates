@@ -1,15 +1,37 @@
 'use client'
 
-import Link from 'next/link'
-import { ChevronDown } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
 
 export default function Hero() {
   const [isLoaded, setIsLoaded] = useState(false)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isMobile, setIsMobile] = useState(false)
 
+  const images = [
+    {
+      url: '/avinashadv1.jpg',
+      alt: 'Advocate Avinash Singh - Professional Lawyer',
+      title: 'Expert Legal Consultation'
+    },
+    {
+      url: '/legal-documents.jpg', 
+      alt: 'Legal Documents - Professional Law Services',
+      title: 'Document Preparation & Review'
+    },
+    {
+      url: '/court-appearance.jpg', 
+      alt: 'Court Appearance - Experienced Litigator',
+      title: 'Court Representation'
+    },
+    {
+      url: '/client-consultation.jpg',
+      alt: 'Client Consultation - Personal Legal Advice',
+      title: 'Client-focused Approach'
+    }
+  ]
+
   useEffect(() => {
-    // Check if mobile on initial render and on resize
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768)
     }
@@ -17,13 +39,26 @@ export default function Hero() {
     checkMobile()
     window.addEventListener('resize', checkMobile)
     
-    // Trigger fade-in animation
     const timer = setTimeout(() => setIsLoaded(true), 100)
     
+ 
+    const slideInterval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % images.length)
+    }, 5000) 
+
     return () => {
       window.removeEventListener('resize', checkMobile)
       clearTimeout(timer)
+      clearInterval(slideInterval)
     }
+  }, [images.length])
+
+  const goToNext = useCallback(() => {
+    setCurrentImageIndex((prev) => (prev + 1) % images.length)
+  }, [])
+
+  const goToPrev = useCallback(() => {
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)
   }, [])
 
   const soonmsg = () => {
@@ -35,20 +70,57 @@ export default function Hero() {
       id="hero" 
       className="relative min-h-screen bg-gradient-to-br from-primary to-primary/80 text-white flex items-center overflow-hidden"
     >
-      {/* Background Image for Mobile */}
-      <div className="md:hidden absolute inset-0 z-0">
-        <img
-          src="/avinashadv1.jpg"
-          alt="Advocate Avinash Singh"
-          className="w-full h-full object-cover"
-        />
-        {/* Gradient Overlay for better text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/50 to-primary/20" />
-        <div className="absolute inset-0 bg-black/30" />
+      {/* Background Images Carousel */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        {/* Mobile Background */}
+        <div className="md:hidden absolute inset-0">
+          <div className="relative w-full h-full">
+            {images.map((image, index) => (
+              <div
+                key={index}
+                className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                  index === currentImageIndex ? 'opacity-100' : 'opacity-0'
+                }`}
+              >
+                <img
+                  src={image.url}
+                  alt={image.alt}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/50 to-primary/20" />
+                <div className="absolute inset-0 bg-black/30" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Desktop Background Carousel */}
+        <div className="hidden md:block absolute inset-0">
+          <div className="relative w-full h-full">
+            {images.map((image, index) => (
+              <div
+                key={index}
+                className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
+                  index === currentImageIndex
+                    ? 'opacity-100 scale-100'
+                    : 'opacity-0 scale-105'
+                }`}
+              >
+                <img
+                  src={image.url}
+                  alt={image.alt}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/90 via-primary/60 to-transparent" />
+                <div className="absolute inset-0 bg-black/20" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden z-0">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-accent/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-accent/10 rounded-full blur-3xl animate-pulse delay-1000" />
       </div>
@@ -80,7 +152,7 @@ export default function Hero() {
             <div className="flex flex-col sm:flex-row gap-4 pt-4 animate-slideUp delay-300">
               <button 
                 onClick={() => {
-                  const phoneNumber = '918252207551' // Your phone number without + or spaces
+                  const phoneNumber = '918252207551'
                   const message = encodeURIComponent('Hello Advocate Avinash Singh, I would like to schedule a legal consultation regarding my case.')
                   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`
                   window.open(whatsappUrl, '_blank')
@@ -97,24 +169,79 @@ export default function Hero() {
             </div>
           </div>
 
-          {/* Desktop Image */}
+          {/* Desktop Image Carousel */}
           <div className={`hidden md:flex items-center justify-center transition-all duration-1000 delay-500 ${
             isLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
           }`}>
-            <div className="relative group">
-              <div className="absolute -inset-4 bg-gradient-to-r from-accent to-transparent rounded-2xl blur-xl opacity-0 group-hover:opacity-30 transition-opacity duration-500" />
-              <img
-                src="/avinashadv1.jpg"
-                alt="Advocate Avinash Singh"
-                className="relative rounded-lg shadow-2xl object-cover w-full h-96 transition-transform duration-500 group-hover:scale-105 border-4 border-white/10 group-hover:border-accent/30"/>
-              {/* Shine effect on hover */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-lg" />
+            <div className="relative group w-full max-w-xl">
+              {/* Image Carousel Container */}
+              <div className="relative h-96 w-full rounded-2xl overflow-hidden shadow-2xl">
+                {images.map((image, index) => (
+                  <div
+                    key={index}
+                    className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
+                      index === currentImageIndex
+                        ? 'opacity-100 scale-100'
+                        : 'opacity-0 scale-105'
+                    }`}
+                  >
+                    <img
+                      src={image.url}
+                      alt={image.alt}
+                      className="w-full h-full object-cover"
+                    />
+                    {/* Image overlay with title */}
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+                      <p className="text-white font-semibold text-lg">{image.title}</p>
+                    </div>
+                  </div>
+                ))}
+                
+                {/* Image navigation buttons */}
+                <button
+                  onClick={goToPrev}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all duration-300 hover:scale-110 opacity-0 group-hover:opacity-100"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft size={24} />
+                </button>
+                <button
+                  onClick={goToNext}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all duration-300 hover:scale-110 opacity-0 group-hover:opacity-100"
+                  aria-label="Next image"
+                >
+                  <ChevronRight size={24} />
+                </button>
+              </div>
+
+              {/* Image indicators */}
+              <div className="flex justify-center gap-2 mt-6">
+                {images.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentImageIndex(index)}
+                    className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                      index === currentImageIndex
+                        ? 'bg-accent scale-125'
+                        : 'bg-white/50 hover:bg-white/80'
+                    }`}
+                    aria-label={`Go to image ${index + 1}`}
+                  />
+                ))}
+              </div>
+
+              {/* Current image indicator */}
+              <div className="text-center mt-2">
+                <p className="text-white/80 text-sm">
+                  {currentImageIndex + 1} / {images.length}
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Scroll Indicator with animation */}
+      {/* Scroll Indicator */}
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10">
         <div className="flex flex-col items-center space-y-2">
           <span className="text-sm text-white/60 animate-pulse">Scroll Down</span>
@@ -125,7 +252,22 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Add custom animation keyframes in global CSS or use Tailwind extensions */}
+      {/* Mobile Image Indicators */}
+      <div className="md:hidden absolute bottom-32 left-1/2 transform -translate-x-1/2 flex gap-3 z-10">
+        {images.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => setCurrentImageIndex(index)}
+            className={`w-3 h-3 rounded-full transition-all duration-300 ${
+              index === currentImageIndex
+                ? 'bg-accent scale-125'
+                : 'bg-white/50 hover:bg-white/80'
+            }`}
+            aria-label={`Go to image ${index + 1}`}
+          />
+        ))}
+      </div>
+
       <style jsx global>{`
         @keyframes slideUp {
           from {
@@ -151,6 +293,22 @@ export default function Hero() {
         .animate-slideUp.delay-300 {
           animation-delay: 0.3s;
           opacity: 0;
+        }
+        
+        /* Custom carousel animations */
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateX(30px) scale(1.05);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+          }
+        }
+        
+        .carousel-slide-in {
+          animation: slideIn 1s ease-out forwards;
         }
       `}</style>
     </section>
