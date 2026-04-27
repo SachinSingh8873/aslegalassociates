@@ -129,7 +129,7 @@ export default function Statistics() {
     },
     { 
       label: 'Years Experience', 
-      value: 1, 
+      value: 2, 
       icon: Calendar, 
       color: 'text-accent',
       suffix: '+',

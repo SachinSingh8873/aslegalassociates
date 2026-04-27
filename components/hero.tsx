@@ -1,14 +1,29 @@
 'use client'
 
 import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import Image from 'next/image'
+
+interface ImageData {
+  url: string
+  alt: string
+  title: string
+}
 
 export default function Hero() {
   const [isLoaded, setIsLoaded] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isMobile, setIsMobile] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
+  const [showCaseHistory, setShowCaseHistory] = useState(false)
+  const carouselRef = useRef<HTMLDivElement>(null)
 
-  const images = [
+  const images: ImageData[] = [
+    {
+      url: '/avinashadv3.jpg',
+      alt: 'Advocate Avinash Singh - Professional Lawyer',
+      title: 'Expert Legal Consultation'
+    },
     {
       url: '/avinashadv1.jpg',
       alt: 'Advocate Avinash Singh - Professional Lawyer',
@@ -24,12 +39,22 @@ export default function Hero() {
       alt: 'Court Appearance - Experienced Litigator',
       title: 'Court Representation'
     },
+    // {
+    //   url: '/avinashadv2.jpg',
+    //   alt: 'Client Consultation - Personal Legal Advice',
+    //   title: 'Client-focused Approach'
+    // },
     {
       url: '/client-consultation.jpg',
       alt: 'Client Consultation - Personal Legal Advice',
       title: 'Client-focused Approach'
     }
   ]
+
+  // Handle image error
+  const handleImageError = useCallback((index: number) => {
+    console.error(`Failed to load image: ${images[index].url}`)
+  }, [images])
 
   useEffect(() => {
     const checkMobile = () => {
@@ -41,51 +66,79 @@ export default function Hero() {
     
     const timer = setTimeout(() => setIsLoaded(true), 100)
     
- 
+    return () => {
+      window.removeEventListener('resize', checkMobile)
+      clearTimeout(timer)
+    }
+  }, [])
+
+  // Auto-advance carousel
+  useEffect(() => {
+    if (isPaused) return
+    
     const slideInterval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % images.length)
     }, 5000) 
 
-    return () => {
-      window.removeEventListener('resize', checkMobile)
-      clearTimeout(timer)
-      clearInterval(slideInterval)
-    }
-  }, [images.length])
+    return () => clearInterval(slideInterval)
+  }, [images.length, isPaused])
 
   const goToNext = useCallback(() => {
     setCurrentImageIndex((prev) => (prev + 1) % images.length)
-  }, [])
+  }, [images.length])
 
   const goToPrev = useCallback(() => {
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)
-  }, [])
+  }, [images.length])
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        goToPrev()
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        goToNext()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [goToNext, goToPrev])
 
   const soonmsg = () => {
-    alert("This feature will be Available Soon.")
+    setShowCaseHistory(true)
   }
 
   return (
     <section 
       id="hero" 
       className="relative min-h-screen bg-gradient-to-br from-primary to-primary/80 text-white flex items-center overflow-hidden"
+      aria-labelledby="hero-heading"
+      role="banner"
     >
       {/* Background Images Carousel */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         {/* Mobile Background */}
         <div className="md:hidden absolute inset-0">
-          <div className="relative w-full h-full">
+          <div className="relative w-full h-full" ref={carouselRef}>
             {images.map((image, index) => (
               <div
                 key={index}
                 className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
                   index === currentImageIndex ? 'opacity-100' : 'opacity-0'
                 }`}
+                onMouseEnter={() => setIsPaused(true)}
+                onMouseLeave={() => setIsPaused(false)}
               >
-                <img
+                <Image
                   src={image.url}
                   alt={image.alt}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
+                  onError={() => handleImageError(index)}
+                  priority={index === 0}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/50 to-primary/20" />
                 <div className="absolute inset-0 bg-black/30" />
@@ -96,7 +149,7 @@ export default function Hero() {
 
         {/* Desktop Background Carousel */}
         <div className="hidden md:block absolute inset-0">
-          <div className="relative w-full h-full">
+          <div className="relative w-full h-full" ref={carouselRef}>
             {images.map((image, index) => (
               <div
                 key={index}
@@ -105,11 +158,16 @@ export default function Hero() {
                     ? 'opacity-100 scale-100'
                     : 'opacity-0 scale-105'
                 }`}
+                onMouseEnter={() => setIsPaused(true)}
+                onMouseLeave={() => setIsPaused(false)}
               >
-                <img
+                <Image
                   src={image.url}
                   alt={image.alt}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
+                  onError={() => handleImageError(index)}
+                  priority={index === 0}
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/90 via-primary/60 to-transparent" />
                 <div className="absolute inset-0 bg-black/20" />
@@ -131,7 +189,10 @@ export default function Hero() {
             isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
           }`}>
             <div className="overflow-hidden">
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight animate-slideUp">
+              <h1 
+                id="hero-heading"
+                className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight animate-slideUp"
+              >
                 Advocate Avinash Singh
               </h1>
             </div>
@@ -157,13 +218,16 @@ export default function Hero() {
                   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`
                   window.open(whatsappUrl, '_blank')
                 }}
-                className="bg-accent text-primary px-8 py-3 rounded-lg font-semibold hover:bg-accent/90 transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl shadow-accent/20"
+                className="bg-accent text-primary px-8 py-3 rounded-lg font-semibold hover:bg-accent/90 transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl shadow-accent/20 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-primary"
+                aria-label="Schedule a legal consultation via WhatsApp"
               >
                 Schedule Consultation
               </button>
               <button 
                 onClick={soonmsg}
-                className="border-2 border-accent text-accent px-8 py-3 rounded-lg font-semibold hover:bg-accent/10 transition-all duration-300 transform hover:scale-105 active:scale-95 backdrop-blur-sm hover:backdrop-blur-md">
+                className="border-2 border-accent text-accent px-8 py-3 rounded-lg font-semibold hover:bg-accent/10 transition-all duration-300 transform hover:scale-105 active:scale-95 backdrop-blur-sm hover:backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-primary"
+                aria-label="View case history (coming soon)"
+              >
                 View Case History
               </button>
             </div>
@@ -175,7 +239,14 @@ export default function Hero() {
           }`}>
             <div className="relative group w-full max-w-xl">
               {/* Image Carousel Container */}
-              <div className="relative h-96 w-full rounded-2xl overflow-hidden shadow-2xl">
+              <div 
+                className="relative h-96 w-full rounded-2xl overflow-hidden shadow-2xl"
+                onMouseEnter={() => setIsPaused(true)}
+                onMouseLeave={() => setIsPaused(false)}
+                role="region"
+                aria-label="Image carousel"
+                aria-live="polite"
+              >
                 {images.map((image, index) => (
                   <div
                     key={index}
@@ -185,10 +256,13 @@ export default function Hero() {
                         : 'opacity-0 scale-105'
                     }`}
                   >
-                    <img
+                    <Image
                       src={image.url}
                       alt={image.alt}
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
+                      onError={() => handleImageError(index)}
+                      priority={index === 0}
                     />
                     {/* Image overlay with title */}
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
@@ -200,14 +274,14 @@ export default function Hero() {
                 {/* Image navigation buttons */}
                 <button
                   onClick={goToPrev}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all duration-300 hover:scale-110 opacity-0 group-hover:opacity-100"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all duration-300 hover:scale-110 opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black"
                   aria-label="Previous image"
                 >
                   <ChevronLeft size={24} />
                 </button>
                 <button
                   onClick={goToNext}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all duration-300 hover:scale-110 opacity-0 group-hover:opacity-100"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all duration-300 hover:scale-110 opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black"
                   aria-label="Next image"
                 >
                   <ChevronRight size={24} />
@@ -215,25 +289,27 @@ export default function Hero() {
               </div>
 
               {/* Image indicators */}
-              <div className="flex justify-center gap-2 mt-6">
+              <div className="flex justify-center gap-2 mt-6" role="tablist" aria-label="Image indicators">
                 {images.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => setCurrentImageIndex(index)}
-                    className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                    className={`w-3 h-3 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-primary ${
                       index === currentImageIndex
                         ? 'bg-accent scale-125'
                         : 'bg-white/50 hover:bg-white/80'
                     }`}
                     aria-label={`Go to image ${index + 1}`}
+                    role="tab"
+                    aria-selected={index === currentImageIndex}
                   />
                 ))}
               </div>
 
               {/* Current image indicator */}
               <div className="text-center mt-2">
-                <p className="text-white/80 text-sm">
-                  {currentImageIndex + 1} / {images.length}
+                <p className="text-white/80 text-sm" aria-live="polite">
+                  {currentImageIndex + 1} of {images.length}
                 </p>
               </div>
             </div>
@@ -247,28 +323,74 @@ export default function Hero() {
           <span className="text-sm text-white/60 animate-pulse">Scroll Down</span>
           <ChevronDown 
             size={32} 
-            className="text-accent animate-bounce" 
+            className="text-accent animate-bounce"
+            aria-hidden="true"
           />
         </div>
       </div>
 
       {/* Mobile Image Indicators */}
-      <div className="md:hidden absolute bottom-32 left-1/2 transform -translate-x-1/2 flex gap-3 z-10">
+      <div className="md:hidden absolute bottom-32 left-1/2 transform -translate-x-1/2 flex gap-3 z-10" role="tablist" aria-label="Image indicators">
         {images.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentImageIndex(index)}
-            className={`w-3 h-3 rounded-full transition-all duration-300 ${
+            className={`w-3 h-3 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-primary ${
               index === currentImageIndex
                 ? 'bg-accent scale-125'
                 : 'bg-white/50 hover:bg-white/80'
             }`}
             aria-label={`Go to image ${index + 1}`}
+            role="tab"
+            aria-selected={index === currentImageIndex}
           />
         ))}
       </div>
 
-      <style jsx global>{`
+      {/* Case History Modal */}
+      {showCaseHistory && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowCaseHistory(false)}>
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto modal-scroll" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-primary">Case History</h3>
+              <button
+                onClick={() => setShowCaseHistory(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl"
+                aria-label="Close modal"
+              >
+                ×
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="border-l-4 border-accent pl-4">
+                <h4 className="font-semibold text-primary">Corporate Law Case</h4>
+                <p className="text-sm text-gray-600">Successfully represented a tech startup in merger negotiations, resulting in favorable terms for the client.</p>
+                <p className="text-xs text-gray-500 mt-1">Completed: March 2026</p>
+              </div>
+              <div className="border-l-4 border-accent pl-4">
+                <h4 className="font-semibold text-primary">Family Law Matter</h4>
+                <p className="text-sm text-gray-600">Handled divorce proceedings with child custody arrangements, ensuring the best interests of the children were prioritized.</p>
+                <p className="text-xs text-gray-500 mt-1">Completed: February 2025</p>
+              </div>
+              <div className="border-l-4 border-accent pl-4">
+                <h4 className="font-semibold text-primary">Criminal Defense</h4>
+                <p className="text-sm text-gray-600">Defended a client in a white-collar crime case, achieving acquittal through strategic legal arguments.</p>
+                <p className="text-xs text-gray-500 mt-1">Completed: January 2025</p>
+              </div>
+              <div className="border-l-4 border-accent pl-4">
+                <h4 className="font-semibold text-primary">Property Dispute</h4>
+                <p className="text-sm text-gray-600">Resolved a complex property boundary dispute through mediation, avoiding costly litigation.</p>
+                <p className="text-xs text-gray-500 mt-1">Completed: December 2024</p>
+              </div>
+            </div>
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-600">For detailed case studies or specific inquiries, please schedule a consultation.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style>{`
         @keyframes slideUp {
           from {
             opacity: 0;
@@ -294,21 +416,25 @@ export default function Hero() {
           animation-delay: 0.3s;
           opacity: 0;
         }
-        
-        /* Custom carousel animations */
-        @keyframes slideIn {
-          from {
-            opacity: 0;
-            transform: translateX(30px) scale(1.05);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0) scale(1);
-          }
+
+        /* Custom scrollbar styling */
+        .modal-scroll::-webkit-scrollbar {
+          width: 3px;
         }
-        
-        .carousel-slide-in {
-          animation: slideIn 1s ease-out forwards;
+        .modal-scroll::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+        }
+        .modal-scroll::-webkit-scrollbar-thumb {
+          background: #888;
+          border-radius: 10px;
+        }
+        .modal-scroll::-webkit-scrollbar-thumb:hover {
+          background: #555;
+        }
+        .modal-scroll {
+          scrollbar-width: thin;
+          scrollbar-color: #888 #f1f1f1;
         }
       `}</style>
     </section>

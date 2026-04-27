@@ -52,7 +52,7 @@ export default function Footer() {
   }
 
   const handleDeveloperClick = () => {
-    window.open('https://itspire.online', '_blank')
+    window.open('https://www.linkedin.com/in/sachinkr887368/', '_blank')
   }
 
   return (
@@ -264,7 +264,7 @@ export default function Footer() {
           </div>
 
           {/* Developer Credit - Added this section */}
-          {/* <div className="mt-6 pt-6 border-t border-white/10 flex flex-col items-center">
+           <div className="mt-6 pt-6 border-t border-white/10 flex flex-col items-center">
             <div className="flex items-center gap-3">
               <div 
                 onClick={handleDeveloperClick}
@@ -285,7 +285,7 @@ export default function Footer() {
                 />
               </div>
             </div>
-          </div> */}
+          </div> 
 
           {/* Accreditation */}
           <div className="mt-6 pt-6 border-t border-white/10 text-center">
